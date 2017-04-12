@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as net from 'net';
 import * as sfs from 'fs';
-import * as assign from 'lodash.assign';
 
 import 'rxjs/add/observable/of';
 import 'rxjs/add/observable/merge';
@@ -142,8 +141,8 @@ export interface SpawnOptionsBase {
   readonly stdin?: Observable<string>;
   readonly stdio?: ('ignore' | 'inherit' | null)[];
 }
-export type SpawnOptionsSplit = { split: true } & SpawnOptionsBase;
-export type SpawnOptionsNoSplit = { split?: false } & SpawnOptionsBase;
+export type SpawnOptionsSplit = { readonly split: true } & SpawnOptionsBase;
+export type SpawnOptionsNoSplit = { readonly split?: false } & SpawnOptionsBase;
 export type SpawnOptions = SpawnOptionsSplit | SpawnOptionsNoSplit;
 export interface SplitOutput {
   readonly source: 'stdout' | 'stderr';
@@ -173,16 +172,24 @@ export function spawnDetached(exe: string, params: Array<string>, opts: SpawnOpt
   const { cmd, args } = findActualExecutable(exe, params);
 
   if (!isWindows) {
-    return spawn(cmd, args, assign({}, opts, { detached: true }));
+    if (opts.split) {
+      return spawn(cmd, args, {...opts, detached: true });
+    } else {
+      return spawn(cmd, args, {...opts, detached: true });
+    }
   };
 
   const newParams = [cmd].concat(args);
 
   let target = path.join(__dirname, '..', '..', 'vendor', 'jobber', 'jobber.exe');
-  let options = assign({}, opts, { detached: true, jobber: true });
+  let options = {...opts, detached: true, jobber: true };
 
   d(`spawnDetached: ${target}, ${newParams}`);
-  return spawn(target, newParams, options);
+  if (options.split) {
+    return spawn(target, newParams, options);
+  } else {
+    return spawn(target, newParams, options);
+  }
 }
 
 /**
@@ -210,12 +217,12 @@ export function spawn(exe: string, params: Array<string> = [], opts: SpawnOption
     }>) => {
     let { cmd, args } = findActualExecutable(exe, params);
     d(`spawning process: ${cmd} ${args.join()}, ${JSON.stringify(opts)}`);
-    let origOpts = assign({}, opts);
+    let origOpts = {...opts};
     if ('jobber' in origOpts) {
-      delete origOpts.jobber;
+      delete (origOpts as any).jobber;
     }
     if ('split' in origOpts) {
-      delete origOpts.split;
+      delete (origOpts as any).split;
     };
 
     const proc = spawnOg(cmd, args, origOpts);

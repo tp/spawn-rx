@@ -28,7 +28,6 @@
   "homepage": "https://github.com/paulcbetts/spawn-rx",
   "dependencies": {
     "debug": "^2.5.1",
-    "lodash.assign": "^4.2.0",
     "rxjs": "^5.1.1"
   },
   "devDependencies": {
