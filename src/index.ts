@@ -211,10 +211,7 @@ export function spawnDetached(exe: string, params: Array<string>, opts: SpawnOpt
 export function spawn(exe: string, params: Array<string>, opts?: SpawnOptionsNoSplit): Observable<string>;
 export function spawn(exe: string, params: Array<string>, opts?: SpawnOptionsSplit): Observable<SplitOutput>;
 export function spawn(exe: string, params: Array<string> = [], opts: SpawnOptions = {}): Observable<SplitOutput|string> {
-  let spawnObs = Observable.create((subj: Observer<{
-    source: any,
-    text: any
-    }>) => {
+  let spawnObs = Observable.create((subj: Observer<SplitOutput>) => {
     let { cmd, args } = findActualExecutable(exe, params);
     d(`spawning process: ${cmd} ${args.join()}, ${JSON.stringify(opts)}`);
     let origOpts = {...opts};
@@ -227,7 +224,7 @@ export function spawn(exe: string, params: Array<string> = [], opts: SpawnOption
 
     const proc = spawnOg(cmd, args, origOpts);
 
-    let bufHandler = (source: string) => (b: string | Buffer) => {
+    let bufHandler = (source: 'stdout' | 'stderr') => (b: string | Buffer) => {
       if (b.length < 1) {
         return;
       };
